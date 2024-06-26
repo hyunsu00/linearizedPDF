@@ -29,6 +29,22 @@ app = Flask(__name__)
 def home():
     return render_template('index.html')
 
+@app.route('/viewer')
+def viewer():
+    return send_from_directory('static/pdfjs/web', 'viewer.html')
+
+@app.route('/web/<path:filename>')
+def serve_web(filename):
+    return send_from_directory('static/pdfjs/web', filename)
+
+@app.route('/build/<path:filename>')
+def serve_build(filename):
+    return send_from_directory('static/pdfjs/build', filename)
+
+@app.route('/<path:filename>')
+def serve_root(filename):
+    return send_from_directory('static/pdfjs/web', filename)
+
 @app.route('/pdf/<filename>')
 def pdf_viewer(filename):
     return send_from_directory('static/pdfs', filename)
