@@ -6,6 +6,7 @@ $ qpdf --linearize us-public-health-and-welfare-code.pdf us-public-health-and-we
 
 $ qpdf --linearize "all-products_esuprt_printers_main_esuprt_printers_mono_laser_dell-b5465dnf_user's_guide_ko-kr.pdf" "all-products_esuprt_printers_main_esuprt_printers_mono_laser_dell-b5465dnf_user's_guide_ko-kr.linearized.pdf"
 
+$ qpdf --linearize compressed.tracemonkey-pldi-09.pdf compressed.tracemonkey-pldi-09.linearized.pdf
 # linearize PDF 확인
 $ sed '4q;d' us-public-health-and-welfare-code.linearized.pdf
 $ qpdf --check-linearization us-public-health-and-welfare-code.linearized.pdf

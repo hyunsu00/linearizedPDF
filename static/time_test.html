@@ -30,7 +30,14 @@
 
         async function loadPdf(url, timeElementId) {
             const start = performance.now();
-            const pdf = await pdfjsLib.getDocument(url).promise;
+            const loadingTask = pdfjsLib.getDocument({ 
+                url: url,
+                disableAutoFetch: false, // 전체 파일을 자동으로 가져오도록 설정
+                disableRange: false, // 부분 로딩을 활성화
+                disableStream: false, // 스트리밍을 활성화하여 부분 로딩
+                rangeChunkSize: 65536 // 64KB 청크 사이즈를 사용하여 부분 로딩 활성화
+            });
+            const pdf =await loadingTask.promise;
             const page = await pdf.getPage(1);
             const viewport = page.getViewport({ scale: 1 });
 
@@ -47,6 +54,17 @@
             const end = performance.now();
 
             document.getElementById(timeElementId).textContent = (end - start).toFixed(2);
+
+            // 전체 파일 로드 진행
+            loadingTask.promise.then(pdf => {
+                    console.log('PDF loaded');
+            }).catch(error => {
+                console.error('Error during loading: ', error);
+            });
+
+            loadingTask.onProgress = function(progressData) {
+                console.log(`Loading progress: ${Math.round(progressData.loaded / progressData.total * 100)}%`);
+            };
         }
     </script>
 </body>
