@@ -37,16 +37,20 @@
     <div id="buttonContainer">
         <button id="linearized_btn">linearized.pdf</button>
         <button id="none_linearized_btn">none_linearized.pdf</button>
+        <button id="time_test_btn">linearized/none_linearized Test</button>
     </div>
     <iframe id="pdfViewer" src="/static/pdfjs/web/viewer.html">
         이 브라우저는 PDF를 지원하지 않습니다. 보려면 PDF를 다운로드하세요.: <a href="/pdf/Linearized.pdf">PDF 다운로드</a>.
     </iframe>
     <script>
         document.getElementById('linearized_btn').addEventListener('click', function() {
-            document.getElementById('pdfViewer').src = "/viewer?file=/pdf/linearized.pdf";
+            document.getElementById('pdfViewer').src = "/viewer?file=/pdf/us-public-health-and-welfare-code.linearized.pdf";
         });
         document.getElementById('none_linearized_btn').addEventListener('click', function() {
-            document.getElementById('pdfViewer').src = "/viewer?file=/pdf/none_linearized.pdf";
+            document.getElementById('pdfViewer').src = "/viewer?file=/pdf/us-public-health-and-welfare-code.pdf";
+        });
+        document.getElementById('time_test_btn').addEventListener('click', function() {
+            document.getElementById('pdfViewer').src = "static/time_test.html";
         });
     </script>
 </body>

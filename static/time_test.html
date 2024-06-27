@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDF.js Linearized vs Non-linearized PDF</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.10.377/pdf.min.js"></script>
+</head>
+<body>
+    <h1>PDF.js Linearized vs Non-linearized PDF Loading Test</h1>
+    <div>
+        <button id="loadLinearized">Load Linearized PDF</button>
+        <button id="loadNonLinearized">Load Non-linearized PDF</button>
+    </div>
+    <div>
+        <p>Linearized PDF Load Time: <span id="linearizedTime"></span> ms</p>
+        <p>Non-linearized PDF Load Time: <span id="nonLinearizedTime"></span> ms</p>
+    </div>
+    <canvas id="pdfCanvas" style="border:1px solid black;"></canvas>
+
+    <script>
+        const pdfjsLib = window['pdfjs-dist/build/pdf'];
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.10.377/pdf.worker.min.js';
+
+        const linearizedUrl = '/pdf/us-public-health-and-welfare-code.linearized.pdf';  // 리니얼라이즈된 PDF 파일 경로
+        const nonLinearizedUrl = '/pdf/us-public-health-and-welfare-code.pdf';  // 비리니얼라이즈된 PDF 파일 경로
+
+        document.getElementById('loadLinearized').addEventListener('click', () => loadPdf(linearizedUrl, 'linearizedTime'));
+        document.getElementById('loadNonLinearized').addEventListener('click', () => loadPdf(nonLinearizedUrl, 'nonLinearizedTime'));
+
+        async function loadPdf(url, timeElementId) {
+            const start = performance.now();
+            const pdf = await pdfjsLib.getDocument(url).promise;
+            const page = await pdf.getPage(1);
+            const viewport = page.getViewport({ scale: 1 });
+
+            const canvas = document.getElementById('pdfCanvas');
+            const context = canvas.getContext('2d');
+            canvas.height = viewport.height;
+            canvas.width = viewport.width;
+
+            const renderContext = {
+                canvasContext: context,
+                viewport: viewport
+            };
+            await page.render(renderContext).promise;
+            const end = performance.now();
+
+            document.getElementById(timeElementId).textContent = (end - start).toFixed(2);
+        }
+    </script>
+</body>
+</html>
