@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PDF.js Linearized vs Non-linearized PDF</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.10.377/pdf.min.js"></script>
+    <script src="/build/pdf.mjs" type="module"></script>
 </head>
 <body>
     <h1>PDF.js Linearized vs Non-linearized PDF Loading Test</h1>
@@ -16,32 +16,52 @@
         <p>Linearized PDF Load Time: <span id="linearizedTime"></span> ms</p>
         <p>Non-linearized PDF Load Time: <span id="nonLinearizedTime"></span> ms</p>
     </div>
-    <canvas id="pdfCanvas" style="border:1px solid black;"></canvas>
+    <canvas id="canvas" style="border:1px solid black;"></canvas>
 
-    <script>
-        const pdfjsLib = window['pdfjs-dist/build/pdf'];
-        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.10.377/pdf.worker.min.js';
+    <script type="module">
+        let { pdfjsLib } = globalThis;
+        pdfjsLib.GlobalWorkerOptions.workerSrc = '/build/pdf.worker.mjs';
 
-        const linearizedUrl = '/pdf/us-public-health-and-welfare-code.linearized.pdf';  // 리니얼라이즈된 PDF 파일 경로
-        const nonLinearizedUrl = '/pdf/us-public-health-and-welfare-code.pdf';  // 비리니얼라이즈된 PDF 파일 경로
+        // const linearizedUrl = '/pdf/us-public-health-and-welfare-code.linearized.pdf';  // 리니얼라이즈된 PDF 파일 경로
+        // const nonLinearizedUrl = '/pdf/us-public-health-and-welfare-code.pdf';  // 비리니얼라이즈된 PDF 파일 경로
+        const linearizedUrl = '/pdf/compressed.tracemonkey-pldi-09.linearized.pdf';  // 리니얼라이즈된 PDF 파일 경로
+        const nonLinearizedUrl = '/pdf/compressed.tracemonkey-pldi-09.pdf';  // 비리니얼라이즈된 PDF 파일 경로
 
         document.getElementById('loadLinearized').addEventListener('click', () => loadPdf(linearizedUrl, 'linearizedTime'));
         document.getElementById('loadNonLinearized').addEventListener('click', () => loadPdf(nonLinearizedUrl, 'nonLinearizedTime'));
 
         async function loadPdf(url, timeElementId) {
             const start = performance.now();
+
             const loadingTask = pdfjsLib.getDocument({ 
                 url: url,
                 disableAutoFetch: false, // 전체 파일을 자동으로 가져오도록 설정
-                disableRange: false, // 부분 로딩을 활성화
+                disableRange: true, // 부분 로딩을 활성화
                 disableStream: false, // 스트리밍을 활성화하여 부분 로딩
                 rangeChunkSize: 65536 // 64KB 청크 사이즈를 사용하여 부분 로딩 활성화
             });
-            const pdf =await loadingTask.promise;
+            loadingTask.onProgress = function(progressData) {
+                console.log(`Loading progress: ${Math.round(progressData.loaded / progressData.total * 100)}%`);
+            };
+            const pdf = await loadingTask.promise;
+            await renderPage(pdf);
+            const end = performance.now();
+
+            document.getElementById(timeElementId).textContent = (end - start).toFixed(2);
+
+            // 전체 파일 로드 진행
+            loadingTask.promise.then(pdf => {
+                console.log('PDF loaded');
+            }).catch(error => {
+                console.error('Error during loading: ', error);
+            });
+        }
+
+        async function renderPage(pdf) {
             const page = await pdf.getPage(1);
             const viewport = page.getViewport({ scale: 1 });
 
-            const canvas = document.getElementById('pdfCanvas');
+            const canvas = document.getElementById('canvas');
             const context = canvas.getContext('2d');
             canvas.height = viewport.height;
             canvas.width = viewport.width;
@@ -51,20 +71,6 @@
                 viewport: viewport
             };
             await page.render(renderContext).promise;
-            const end = performance.now();
-
-            document.getElementById(timeElementId).textContent = (end - start).toFixed(2);
-
-            // 전체 파일 로드 진행
-            loadingTask.promise.then(pdf => {
-                    console.log('PDF loaded');
-            }).catch(error => {
-                console.error('Error during loading: ', error);
-            });
-
-            loadingTask.onProgress = function(progressData) {
-                console.log(`Loading progress: ${Math.round(progressData.loaded / progressData.total * 100)}%`);
-            };
         }
     </script>
 </body>
